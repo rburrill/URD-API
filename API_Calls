@@ -1,0 +1,89 @@
+import requests
+from requests_ntlm import HttpNtlmAuth
+from datetime import date
+import pandas as pd
+
+# Authentication Credentials for API Call  
+data = pd.read_csv("C:\\TestResults\\PythonCredentialFile.csv")                
+username = data['username'].iloc[0]
+password = data['password'].iloc[0]
+
+# API Call for /api/CoreSyncController/InsertEids
+today = date.today().strftime("%Y-%m-%d")
+myJson = [
+  {
+    "id": 0,
+    "crmId": 1,
+    "eid": "1234567891",
+    "rdId": "123456781",
+    "lastActivityDt": "2023-08-08",
+    "firstHeartbeatDt": "2023-08-08",
+    "registrationDt": "2023-08-08",
+    "isMarkedForDelete": 'false',
+    "sourceCreatedDt": "2023-08-08",
+    "sourceModifiedDt": "2023-08-08"
+  }
+]
+
+try:
+	response = requests.post("http://urd-qa.corp.srelay.com/URA/api/CoreSyncController/InsertEids", json=myJson, auth=HttpNtlmAuth(username, password))
+	print(response)
+	print(response.headers)
+except (ValueError):
+	print("No Response Json")
+	
+# API Call for ReadWorkFlow/RetrieveTaskSummary
+response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveTaskSummary", auth=HttpNtlmAuth(username, password))
+print(response)
+print(response.json())
+
+today = date.today().strftime("%Y-%m-%d")
+myJson = {
+  "crmId": 1,
+  "complianceType": "Individual",
+  "companyClassification": None,
+  "isActive": 'true',
+  "person": {
+    "salutation": None,
+    "firstName": "asdf",
+    "lastName": "asdf",
+    "middleName": None,
+    "suffix": None,
+    "dateOfBirth": today,
+    "ssn": "1234",
+    "tin": None,
+    "hasNoSsnOrTin": 'true',
+    "companyCrmId": 0,
+    "modifiedDate": today,
+    "sourceCreatedDt": today,
+    "parentComplianceType": 0,
+    "parentCompanyClassification": 0,
+    "parentIsActive": 'true'
+  },
+  "company": None,
+  "address": {
+    "address1": "asdfasdf",
+    "address2": "asdf",
+    "city": "asdf",
+    "state": "asdf",
+    "postCode": "12345",
+    "country": "USA",
+    "modifiedDate": today,
+    "sourceCreatedDt": today
+  },
+  "documents": [
+    {
+      "documentId": "asdf",
+      "documentType": "asdf",
+      "documentFileLocation": "asdfasdf",
+      "documentModifiedDate": today,
+      "sourceCreatedDt": today
+    }
+  ],
+  "porting": [],
+  "guardians": []
+}
+#
+response = requests.post("http://urd-qa.corp.srelay.com/URA/api/IncomingDataRollsDownhillController/ProcessServiceBus", json=myJson, auth=HttpNtlmAuth(username, password))
+print(response)
+print(response.json())
