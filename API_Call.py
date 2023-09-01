@@ -1,5 +1,4 @@
 import requests
-import pandas as pd
 import random
 from requests_ntlm import HttpNtlmAuth
 from datetime import date
@@ -8,14 +7,13 @@ from lowercase_booleans import true
 from FileCreateWrite import writeOutTestResults
 from win32com.test.testPersist import now
 
-# Authentication Credentials for API Call  
-data = pd.read_csv("C:\\TestResults\\PythonCredentialFile.csv")                
-username = data['username'].iloc[0]
-password = data['password'].iloc[0]
+# Authentication Credentials for API Call                
+username = 'z_URDQA_Test'
+password = '0irfI8El3E$)IXGX2jw9BIwlMo8^ql'
 
 # Class Accessible Variables
 today = date.today().strftime("%Y-%m-%d")
-path = 'C:/TestResults/ApiCallAutomationTestResults.csv'
+path = 'C:/TestResults/Test Automation Results.csv'
 now = (str(date.today()) + " " + now.strftime("%H:%M:%S"))
 
 
