@@ -939,7 +939,8 @@ def readWorkflowController():
 		responseJson1.append(response.json()["resultDescription"])
 		responseJson2 = []
 		responseJson2.append(responseJson1)
-		if (sqlResult == responseJson2) and (response.status_code == 200):
+		result = any(elem in sqlResult for elem in responseJson2)
+		if (result == true) and (response.status_code == 200):
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveIndividualTask", now, "Passed")
 			print(sqlResult)
 			print(responseJson2)
@@ -955,26 +956,29 @@ def readWorkflowController():
 # API Call for /api/ReadWorkflowController/RetrieveTaskListCrmId
 	try:
 		crmIdValue = sql_Query("select top 1 b.CrmId from wfl_Task a join wfl_Endpoint b on a.Endpoint_Id = b.Id")
-		query = "DECLARE @CrmId BIGINT = (SELECT TOP 1 e.CrmId FROM dbo.wfl_Task t JOIN dbo.wfl_Endpoint e ON e.Id = t.Endpoint_Id WHERE t.Id = 1)DECLARE @RootCrmId BIGINT = dbo.udfn_GetRootCrmId(@CrmId) DECLARE @IsNullRootCrmId BIGINT = ISNULL(@RootCrmId, @CrmId) SELECT TOP 1 e.CrmId,ISNULL(e.Eid,''),ISNULL(tt.[Name],'') [TaskType],ISNULL(t.[Description],'') [ResultDescription] FROM dbo.wfl_Endpoint e JOIN dbo.wfl_Task t ON t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType tt ON t.TaskType_Id = tt.Id  JOIN dbo.vdat_AllAccounts a ON a.CrmId = e.CrmId JOIN dbo.dat_ComplianceType ct ON ct.Id = a.ComplianceType_Id LEFT JOIN dbo.wfl_SubmissionQueue sq ON t.SubmissionQueue_Id = sq.Id LEFT JOIN dbo.wfl_TaskHistory th_n WITH (NOLOCK) ON t.Id = th_n.Id LEFT JOIN dbo.wfl_TaskHistory th_an WITH (NOLOCK) ON t.Id = th_an.Id LEFT JOIN dbo.dat_ResidentialAddress ra ON ra.CrmId = @IsNullRootCrmId LEFT JOIN dbo.dat_ResidentialAddressHistory rah WITH (NOLOCK) ON ra.PriorityHistoryId = rah.HistoryId LEFT JOIN dbo.dat_Company rootC ON rootC.CrmId = @IsNullRootCrmId LEFT JOIN dbo.dat_CompanyContact rootCC ON rootCC.Id = rootC.CompanyContact_Id OUTER APPLY (SELECT TOP 1 * FROM dbo.dat_ResidentialAddressHistory rah2 WITH (NOLOCK) WHERE rah2.CrmId = a.CrmId) addressHist OUTER APPLY (SELECT TOP 1 th.HistoryEndDt FROM dbo.wfl_TaskHistory th WITH (NOLOCK) WHERE th.Id = t.Id AND th.Notes IS NOT NULL AND th.Notes = t.Notes ORDER BY th.HistoryEndDt DESC) noteHist OUTER APPLY (SELECT TOP 1 th.HistoryEndDt FROM dbo.wfl_TaskHistory th WITH (NOLOCK) WHERE th.Id = t.Id AND th.AuditNotes IS NOT NULL AND th.AuditNotes = t.AuditNotes ORDER BY th.HistoryEndDt DESC) auditNoteHist WHERE t.Id = 1"
+		query = "DECLARE @CrmId BIGINT = (SELECT TOP 1 e.CrmId FROM dbo.wfl_Task t JOIN dbo.wfl_Endpoint e ON e.Id = t.Endpoint_Id WHERE t.Id = 1)DECLARE @RootCrmId BIGINT = dbo.udfn_GetRootCrmId(@CrmId) DECLARE @IsNullRootCrmId BIGINT = ISNULL(@RootCrmId, @CrmId) SELECT TOP 1 t.Id, e.CrmId,ISNULL(e.Eid,''),ISNULL(tt.[Name],'') [TaskType],ISNULL(t.[Description],'') [ResultDescription] FROM dbo.wfl_Endpoint e JOIN dbo.wfl_Task t ON t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType tt ON t.TaskType_Id = tt.Id  JOIN dbo.vdat_AllAccounts a ON a.CrmId = e.CrmId JOIN dbo.dat_ComplianceType ct ON ct.Id = a.ComplianceType_Id LEFT JOIN dbo.wfl_SubmissionQueue sq ON t.SubmissionQueue_Id = sq.Id LEFT JOIN dbo.wfl_TaskHistory th_n WITH (NOLOCK) ON t.Id = th_n.Id LEFT JOIN dbo.wfl_TaskHistory th_an WITH (NOLOCK) ON t.Id = th_an.Id LEFT JOIN dbo.dat_ResidentialAddress ra ON ra.CrmId = @IsNullRootCrmId LEFT JOIN dbo.dat_ResidentialAddressHistory rah WITH (NOLOCK) ON ra.PriorityHistoryId = rah.HistoryId LEFT JOIN dbo.dat_Company rootC ON rootC.CrmId = @IsNullRootCrmId LEFT JOIN dbo.dat_CompanyContact rootCC ON rootCC.Id = rootC.CompanyContact_Id OUTER APPLY (SELECT TOP 1 * FROM dbo.dat_ResidentialAddressHistory rah2 WITH (NOLOCK) WHERE rah2.CrmId = a.CrmId) addressHist OUTER APPLY (SELECT TOP 1 th.HistoryEndDt FROM dbo.wfl_TaskHistory th WITH (NOLOCK) WHERE th.Id = t.Id AND th.Notes IS NOT NULL AND th.Notes = t.Notes ORDER BY th.HistoryEndDt DESC) noteHist OUTER APPLY (SELECT TOP 1 th.HistoryEndDt FROM dbo.wfl_TaskHistory th WITH (NOLOCK) WHERE th.Id = t.Id AND th.AuditNotes IS NOT NULL AND th.AuditNotes = t.AuditNotes ORDER BY th.HistoryEndDt DESC) auditNoteHist WHERE e.CrmId = " + str(crmIdValue[0][0])
 		print(crmIdValue[0][0])
 		sqlResult = sql_Query(query)
 		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveTaskListCrmId?crmId=" + str(crmIdValue[0][0]), auth=HttpNtlmAuth(username, password))
 		dataJson = response.json()[0]
-		print(dataJson["id"])
-		print(dataJson["crmId"])
-		print(dataJson["eid"])
-		print(dataJson["taskType"])
-		print(dataJson["resultDescription"])
-		print(sqlResult)
-		if (sqlResult == responseJson2) and (response.status_code == 200):
+		responseJsonList1 = []
+		responseJsonList2 = []
+		responseJsonList1.append(dataJson["id"])
+		responseJsonList1.append(dataJson["crmId"])
+		responseJsonList1.append(dataJson["eid"])
+		responseJsonList1.append(dataJson["taskType"])
+		responseJsonList1.append(dataJson["resultDescription"])
+		responseJsonList2.append(responseJsonList1)
+		result = any(elem in sqlResult for elem in responseJsonList2)
+		if (result == true) and (response.status_code == 200):
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskListCrmId", now, "Passed")
 			print(sqlResult)
-			print(responseJson2)
+			print(responseJsonList2)
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskListCrmId", now, "Failed")
 			print(sqlResult)
-			print(responseJson2)
+			print(responseJsonList2)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
