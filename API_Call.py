@@ -7,6 +7,7 @@ from lowercase_booleans import true, false
 from FileCreateWrite import writeOutTestResults
 from win32com.test.testPersist import now
 import json
+from asyncio import streams
 		
 # Authentication Credentials for API Call                
 username = 'z_URDQA_Test'
@@ -741,7 +742,7 @@ def incomingDataRollsDownhill():
 			print(sqlResult)
 	except (ValueError):
 		print("No Response Json")
-		
+
 		
 def readWorkflowController():
 # API Call for /api/ReadWorkflowController/RetrieveTaskSummary
@@ -762,7 +763,7 @@ def readWorkflowController():
 			print(false)
 	except (ValueError):
 		print("No Response Json")
-		 
+	
 # API Call for /api/ReadWorkflowController/RetrieveSubmissionQueueSummary
 	try:
 		query = "SELECT SUM(CASE WHEN sq.SubmissionQueueType_Id = 1 THEN 1 ELSE 0 END) [new], SUM(CASE WHEN sq.SubmissionQueueType_Id = 2 THEN 1 ELSE 0 END) [update], SUM(CASE WHEN sq.SubmissionQueueType_Id = 3 THEN 1 ELSE 0 END) [terminate], SUM(CASE WHEN sq.SubmissionQueueType_Id = 4 THEN 1 ELSE 0 END) [transfer], SUM(CASE WHEN sq.SubmissionQueueType_Id = 5 THEN 1 ELSE 0 END) [abandon], SUM(CASE WHEN sq.SubmissionQueueType_Id = 6 THEN 1 ELSE 0 END) [port]  FROM dbo.wfl_SubmissionQueue sq"
@@ -822,7 +823,7 @@ def readWorkflowController():
 			print(false)
 	except (ValueError):
 		print("No Response Json")
-		 
+	
 # API Call for /api/ReadWorkflowController/RetrieveFullTaskListCSV
 	try:
 		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveFullTaskListCSV", auth=HttpNtlmAuth(username, password))
@@ -952,12 +953,11 @@ def readWorkflowController():
 			print(false)
 	except (ValueError):
 		print("No Response Json")
-		  
+		
 # API Call for /api/ReadWorkflowController/RetrieveTaskListCrmId
 	try:
 		crmIdValue = sql_Query("select top 1 b.CrmId from wfl_Task a join wfl_Endpoint b on a.Endpoint_Id = b.Id")
 		query = "DECLARE @CrmId BIGINT = (SELECT TOP 1 e.CrmId FROM dbo.wfl_Task t JOIN dbo.wfl_Endpoint e ON e.Id = t.Endpoint_Id WHERE t.Id = 1)DECLARE @RootCrmId BIGINT = dbo.udfn_GetRootCrmId(@CrmId) DECLARE @IsNullRootCrmId BIGINT = ISNULL(@RootCrmId, @CrmId) SELECT TOP 1 t.Id, e.CrmId,ISNULL(e.Eid,''),ISNULL(tt.[Name],'') [TaskType],ISNULL(t.[Description],'') [ResultDescription] FROM dbo.wfl_Endpoint e JOIN dbo.wfl_Task t ON t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType tt ON t.TaskType_Id = tt.Id  JOIN dbo.vdat_AllAccounts a ON a.CrmId = e.CrmId JOIN dbo.dat_ComplianceType ct ON ct.Id = a.ComplianceType_Id LEFT JOIN dbo.wfl_SubmissionQueue sq ON t.SubmissionQueue_Id = sq.Id LEFT JOIN dbo.wfl_TaskHistory th_n WITH (NOLOCK) ON t.Id = th_n.Id LEFT JOIN dbo.wfl_TaskHistory th_an WITH (NOLOCK) ON t.Id = th_an.Id LEFT JOIN dbo.dat_ResidentialAddress ra ON ra.CrmId = @IsNullRootCrmId LEFT JOIN dbo.dat_ResidentialAddressHistory rah WITH (NOLOCK) ON ra.PriorityHistoryId = rah.HistoryId LEFT JOIN dbo.dat_Company rootC ON rootC.CrmId = @IsNullRootCrmId LEFT JOIN dbo.dat_CompanyContact rootCC ON rootCC.Id = rootC.CompanyContact_Id OUTER APPLY (SELECT TOP 1 * FROM dbo.dat_ResidentialAddressHistory rah2 WITH (NOLOCK) WHERE rah2.CrmId = a.CrmId) addressHist OUTER APPLY (SELECT TOP 1 th.HistoryEndDt FROM dbo.wfl_TaskHistory th WITH (NOLOCK) WHERE th.Id = t.Id AND th.Notes IS NOT NULL AND th.Notes = t.Notes ORDER BY th.HistoryEndDt DESC) noteHist OUTER APPLY (SELECT TOP 1 th.HistoryEndDt FROM dbo.wfl_TaskHistory th WITH (NOLOCK) WHERE th.Id = t.Id AND th.AuditNotes IS NOT NULL AND th.AuditNotes = t.AuditNotes ORDER BY th.HistoryEndDt DESC) auditNoteHist WHERE e.CrmId = " + str(crmIdValue[0][0])
-		print(crmIdValue[0][0])
 		sqlResult = sql_Query(query)
 		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveTaskListCrmId?crmId=" + str(crmIdValue[0][0]), auth=HttpNtlmAuth(username, password))
 		dataJson = response.json()[0]
@@ -977,6 +977,34 @@ def readWorkflowController():
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskListCrmId", now, "Failed")
+			print(sqlResult)
+			print(responseJsonList2)
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/ReadWorkflowController/RetrieveTaskList
+	try:
+		eidTaskValues = sql_Query("select top 1 b.Eid, a.TaskType_Id from wfl_Task a join wfl_Endpoint b on a.Endpoint_Id = b.Id")
+		query = "SELECT e.Eid,e.CrmId,tt.Name [TaskType],t.Description [ResultDescription] FROM dbo.wfl_Endpoint e JOIN dbo.wfl_Task t on t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType tt on t.TaskType_Id = tt.Id WHERE e.Eid = '" + eidTaskValues[0][0] + "'" + " AND t.TaskType_Id = " + str(eidTaskValues[0][1])
+		sqlResult = sql_Query(query)
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveTaskList?eid=" + str(eidTaskValues[0][0]) + "&taskType=" + str(eidTaskValues[0][1]), auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()[0]
+		responseJsonList1 = []
+		responseJsonList2 = []
+		responseJsonList1.append(dataJson["eid"])
+		responseJsonList1.append(dataJson["crmId"])
+		responseJsonList1.append(dataJson["taskType"])
+		responseJsonList1.append(dataJson["resultDescription"])
+		responseJsonList2.append(responseJsonList1)
+		result = any(elem in sqlResult for elem in responseJsonList2)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList", now, "Passed")
+			print(sqlResult)
+			print(responseJsonList2)
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList", now, "Failed")
 			print(sqlResult)
 			print(responseJsonList2)
 			print(false)
