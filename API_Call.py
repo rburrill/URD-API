@@ -7,7 +7,6 @@ from lowercase_booleans import true, false
 from FileCreateWrite import writeOutTestResults
 from win32com.test.testPersist import now
 import json
-from asyncio import streams
 		
 # Authentication Credentials for API Call                
 username = 'z_URDQA_Test'
@@ -746,6 +745,7 @@ def incomingDataRollsDownhill():
 		
 def readWorkflowController():
 # API Call for /api/ReadWorkflowController/RetrieveTaskSummary
+	from asyncio import streams
 	try:
 		query = "SELECT ft.Id as id,ft.TaskType as taskType,SUM(ft.NumCrm) [count] FROM (SELECT t.TaskType_Id [Id],tt.[Name] [TaskType],COUNT(DISTINCT e.CrmId) AS NumCrm FROM dbo.wfl_Task AS t JOIN dbo.wfl_Endpoint AS e ON t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType AS tt ON t.TaskType_Id = tt.Id GROUP BY t.TaskType_Id,tt.Name) ft GROUP BY ft.TaskType, ft.Id ORDER BY [Count] DESC"
 		sqlResult = sql_QueryJsonResults(query)
@@ -983,7 +983,7 @@ def readWorkflowController():
 	except (ValueError):
 		print("No Response Json")
 
-# API Call for /api/ReadWorkflowController/RetrieveTaskList
+# API Call for /api/ReadWorkflowController/RetrieveTaskList by Eid and Task Type Id
 	try:
 		eidTaskValues = sql_Query("select top 1 b.Eid, a.TaskType_Id from wfl_Task a join wfl_Endpoint b on a.Endpoint_Id = b.Id")
 		query = "SELECT e.Eid,e.CrmId,tt.Name [TaskType],t.Description [ResultDescription] FROM dbo.wfl_Endpoint e JOIN dbo.wfl_Task t on t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType tt on t.TaskType_Id = tt.Id WHERE e.Eid = '" + eidTaskValues[0][0] + "'" + " AND t.TaskType_Id = " + str(eidTaskValues[0][1])
@@ -999,14 +999,63 @@ def readWorkflowController():
 		responseJsonList2.append(responseJsonList1)
 		result = any(elem in sqlResult for elem in responseJsonList2)
 		if (result == true) and (response.status_code == 200):
-			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList", now, "Passed")
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList by Eid and Task Type Id", now, "Passed")
 			print(sqlResult)
 			print(responseJsonList2)
 			print(true)
 		else:
-			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList", now, "Failed")
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList by Eid and Task Type Id", now, "Failed")
 			print(sqlResult)
 			print(responseJsonList2)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
+
+# API Call for /api/ReadWorkflowController/RetrieveTaskList by Eid
+	try:
+		eidTaskValues = sql_Query("select top 1 b.Eid from wfl_Task a join wfl_Endpoint b on a.Endpoint_Id = b.Id")
+		query = "SELECT e.Eid,e.CrmId,tt.Name [TaskType],t.Description [ResultDescription] FROM dbo.wfl_Endpoint e JOIN dbo.wfl_Task t on t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType tt on t.TaskType_Id = tt.Id WHERE e.Eid = '" + eidTaskValues[0][0] + "'"
+		sqlResult = sql_Query(query)
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveTaskList?eid=" + str(eidTaskValues[0][0]), auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()[0]
+		responseJsonList1 = []
+		responseJsonList2 = []
+		responseJsonList1.append(dataJson["eid"])
+		responseJsonList1.append(dataJson["crmId"])
+		responseJsonList1.append(dataJson["taskType"])
+		responseJsonList1.append(dataJson["resultDescription"])
+		responseJsonList2.append(responseJsonList1)
+		result = any(elem in sqlResult for elem in responseJsonList2)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList by Eid", now, "Passed")
+			print(sqlResult)
+			print(responseJsonList2)
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList by Eid", now, "Failed")
+			print(sqlResult)
+			print(responseJsonList2)
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+		
+# API Call for /api/ReadWorkflowController/RetrieveAppealStatus
+	try:
+		crmIdValue = sql_Query("select top 1 b.CrmId from wfl_Task a join wfl_Endpoint b on a.Endpoint_Id = b.Id where a.TaskType_Id in (9)")
+		print(crmIdValue[0][0])
+		query = "DECLARE @AppealTasks INT, @RdIds INT, @AppealSubmissionQueues INT, @FccWaiver INT DECLARE @AppealSubmissionQueueType_Id BIGINT = (SELECT TOP 1 Id FROM dbo.wfl_SubmissionQueueType WHERE Code = 'Appeal') DECLARE @IdentifiedAppealResultType_Id TINYINT = (SELECT TOP 1 Id FROM dbo.res_ResultType WHERE ResultCode = 'IdentifiedAppeal') DECLARE @AwaitingAppealResultType_Id TINYINT = (SELECT TOP 1 Id FROM dbo.res_ResultType WHERE ResultCode = 'AwaitingAppealApproval') DECLARE @FccWaiverDocumentType_Id BIGINT = (SELECT TOP 1 Id FROM dbo.dat_DocumentType WHERE DocumentTypeCode = 'FCCWAIVER') SELECT @AppealTasks = COUNT(1) FROM dbo.wfl_Endpoint e JOIN dbo.wfl_SubmissionQueue sq ON sq.Endpoint_Id = e.Id LEFT JOIN dbo.wfl_Task t ON t.Endpoint_Id = e.Id WHERE e.CrmId = 625506 AND sq.SubmissionQueueType_Id = @AppealSubmissionQueueType_Id SELECT @AppealSubmissionQueues = COUNT(1) FROM dbo.wfl_SubmissionQueue sq WHERE sq.CrmId = 625506 AND sq.SubmissionQueueType_Id = @AppealSubmissionQueueType_Id SELECT  @RdIds = COUNT(1) FROM dbo.wfl_Endpoint ie WHERE ie.CrmId = 625506 AND ie.RdId IS NOT NULL SELECT @FccWaiver = COUNT(1) FROM dbo.dat_UserDocument ud WHERE ud.CrmId = 625506 AND ud.documentType_Id = @FccWaiverDocumentType_Id SELECT CASE WHEN @RdIds = 0 AND @AppealTasks = 0 AND @AppealSubmissionQueues = 0 AND @FccWaiver <> 0 THEN 'SubmitAppeal' WHEN @RdIds > 0 THEN 'AlreadyRegistered' WHEN @AppealTasks > 0 THEN 'HasAppealTasks' ELSE '' END [AppealStatus]"
+		sqlResult = sql_Query(query)
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveAppealStatus?crmId=" + str(crmIdValue[0][0]), auth=HttpNtlmAuth(username, password))
+		if (sqlResult[0][0] == str(response.json())) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveAppealStatus", now, "Passed")
+			print(sqlResult[0][0])
+			print(str(response.json()))
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveAppealStatus", now, "Failed")
+			print(sqlResult[0][0])
+			print(str(response.json()))
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
