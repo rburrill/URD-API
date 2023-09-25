@@ -7,7 +7,9 @@ def sql_Transaction(a):
                             r'Database=URD;')
     cursor = conn.cursor()
     cursor.execute(a)
-    conn.commit()
+    result = cursor.fetchall()
+    resultValue = [list(i) for i in result]
+    return resultValue
 
 
 def sql_Query(a):

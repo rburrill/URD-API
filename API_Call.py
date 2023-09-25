@@ -745,7 +745,6 @@ def incomingDataRollsDownhill():
 		
 def readWorkflowController():
 # API Call for /api/ReadWorkflowController/RetrieveTaskSummary
-	from asyncio import streams
 	try:
 		query = "SELECT ft.Id as id,ft.TaskType as taskType,SUM(ft.NumCrm) [count] FROM (SELECT t.TaskType_Id [Id],tt.[Name] [TaskType],COUNT(DISTINCT e.CrmId) AS NumCrm FROM dbo.wfl_Task AS t JOIN dbo.wfl_Endpoint AS e ON t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType AS tt ON t.TaskType_Id = tt.Id GROUP BY t.TaskType_Id,tt.Name) ft GROUP BY ft.TaskType, ft.Id ORDER BY [Count] DESC"
 		sqlResult = sql_QueryJsonResults(query)
@@ -1011,34 +1010,35 @@ def readWorkflowController():
 	except (ValueError):
 		print("No Response Json")
 
-# API Call for /api/ReadWorkflowController/RetrieveTaskList by Eid
-	try:
-		eidTaskValues = sql_Query("select top 1 b.Eid from wfl_Task a join wfl_Endpoint b on a.Endpoint_Id = b.Id")
-		query = "SELECT e.Eid,e.CrmId,tt.Name [TaskType],t.Description [ResultDescription] FROM dbo.wfl_Endpoint e JOIN dbo.wfl_Task t on t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType tt on t.TaskType_Id = tt.Id WHERE e.Eid = '" + eidTaskValues[0][0] + "'"
-		sqlResult = sql_Query(query)
-		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveTaskList?eid=" + str(eidTaskValues[0][0]), auth=HttpNtlmAuth(username, password))
-		dataJson = response.json()[0]
-		responseJsonList1 = []
-		responseJsonList2 = []
-		responseJsonList1.append(dataJson["eid"])
-		responseJsonList1.append(dataJson["crmId"])
-		responseJsonList1.append(dataJson["taskType"])
-		responseJsonList1.append(dataJson["resultDescription"])
-		responseJsonList2.append(responseJsonList1)
-		result = any(elem in sqlResult for elem in responseJsonList2)
-		if (result == true) and (response.status_code == 200):
-			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList by Eid", now, "Passed")
-			print(sqlResult)
-			print(responseJsonList2)
-			print(true)
-		else:
-			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList by Eid", now, "Failed")
-			print(sqlResult)
-			print(responseJsonList2)
-			print(false)
-	except (ValueError):
-		print("No Response Json")
-		
+# # API Call for /api/ReadWorkflowController/RetrieveTaskList by Eid
+ # try:
+  # eidTaskValues = sql_Query("select top 1 b.Eid from wfl_Task a join wfl_Endpoint b on a.Endpoint_Id = b.Id")
+  # query = "SELECT e.Eid,e.CrmId,tt.Name [TaskType],t.Description [ResultDescription] FROM dbo.wfl_Endpoint e JOIN dbo.wfl_Task t on t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType tt on t.TaskType_Id = tt.Id WHERE e.Eid = '" + eidTaskValues[0][0] + "'"
+  # sqlResult = sql_Query(query)
+  # response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveTaskList?eid=" + str(eidTaskValues[0][0]), auth=HttpNtlmAuth(username, password))
+  # print(response.json())
+  # dataJson = response.json()[0]
+  # responseJsonList1 = []
+  # responseJsonList2 = []
+  # responseJsonList1.append(dataJson["eid"])
+  # responseJsonList1.append(dataJson["crmId"])
+  # responseJsonList1.append(dataJson["taskType"])
+  # responseJsonList1.append(dataJson["resultDescription"])
+  # responseJsonList2.append(responseJsonList1)
+  # result = any(elem in sqlResult for elem in responseJsonList2)
+  # if (result == true) and (response.status_code == 200):
+   # writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList by Eid", now, "Passed")
+   # print(sqlResult)
+   # print(responseJsonList2)
+   # print(true)
+  # else:
+   # writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList by Eid", now, "Failed")
+   # print(sqlResult)
+   # print(responseJsonList2)
+   # print(false)
+ # except (ValueError):
+  # print("No Response Json")
+	
 # API Call for /api/ReadWorkflowController/RetrieveAppealStatus
 	try:
 		crmIdValue = sql_Query("select top 1 b.CrmId from wfl_Task a join wfl_Endpoint b on a.Endpoint_Id = b.Id where a.TaskType_Id in (9)")
@@ -1059,3 +1059,40 @@ def readWorkflowController():
 	except (ValueError):
 		print("No Response Json")
 
+# API Call for /api/ReadWorkflowController/RetrievePriorSubmissions
+	try:
+		sqlResult = sql_Transaction("SET NOCOUNT ON; exec udsp_sub_RetrievePriorSubmissionSummaries @CrmId=625506")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrievePriorSubmissions?crmId=625506", auth=HttpNtlmAuth(username, password))
+		
+		dataJson = response.json()[0]
+		responseJsonList1 = []
+		responseJsonList2 = []
+		responseJsonList1.append(dataJson["submissionType"])
+		responseJsonList1.append(dataJson["name"])
+		responseJsonList1.append(dataJson["residentialStreetAddress"])
+		responseJsonList1.append(dataJson["registeredStreetAddress"])
+		responseJsonList1.append(dataJson["crmId"])
+		responseJsonList1.append(dataJson["submission_Id"])
+		responseJsonList1.append(dataJson["submissionEntry_Id"])
+		responseJsonList1.append(dataJson["submissionQueueHistory_Id"])
+		responseJsonList2.append(sqlResult[1][1])
+		responseJsonList2.append(sqlResult[1][2])
+		responseJsonList2.append(sqlResult[1][3])
+		responseJsonList2.append(sqlResult[1][4])
+		responseJsonList2.append(sqlResult[1][7])
+		responseJsonList2.append(sqlResult[1][8])
+		responseJsonList2.append(sqlResult[1][9])
+		responseJsonList2.append(sqlResult[1][10])
+		result = any(elem in responseJsonList1 for elem in responseJsonList2)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrievePriorSubmissions", now, "Passed")
+			print(responseJsonList1)
+			print(responseJsonList2)
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrievePriorSubmissions", now, "Failed")
+			print(responseJsonList1)
+			print(responseJsonList2)
+			print(false)
+	except (ValueError):
+		print("No Response Json")
