@@ -8,8 +8,9 @@ def sql_Transaction(a):
     cursor = conn.cursor()
     cursor.execute(a)
     result = cursor.fetchall()
-    resultValue = [list(i) for i in result]
-    return resultValue
+    if len(result) > 0:
+        resultValue = [list(i) for i in result]
+        return resultValue
 
 
 def sql_Query(a):
