@@ -1096,3 +1096,53 @@ def readWorkflowController():
 			print(false)
 	except (ValueError):
 		print("No Response Json")
+
+# API Call for /api/ReadWorkflowController/RetrieveTaskTypes
+	try:
+		sqlResult = sql_QueryJsonResults("select a.Id as id, a.Code as code, a.Name as name, a.Description as description, a.IsAutomatic as isAutomatic, a.NeedsAudit as needsAudit, a.IsActive as isActive, a.SortOrder as sortOrder from wfl_TaskType a")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveTaskTypes", auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()
+		responseJsonList1 = []
+		responseJsonList2 = []
+		for item in dataJson:
+			responseJsonList1.append(item)
+		for item in sqlResult:
+			responseJsonList2.append(item)
+		result = any(elem in responseJsonList2 for elem in responseJsonList1)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskTypes", now, "Passed")
+			print(responseJsonList2)
+			print(responseJsonList1)
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskTypes", now, "Failed")
+			print(responseJsonList2)
+			print(responseJsonList1)
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/ReadWorkflowController/RetrieveRiskCodes
+	try:
+		sqlResult = sql_QueryJsonResults("select a.Id as id, a.ResultCode as resultCode, a.Description as description from res_ResultType a where a.Id in (68, 61, 69, 62, 70, 63, 64, 65, 66, 67, 71, 76, 72, 77, 73, 78, 74, 79, 75, 80, 81, 84, 82, 85, 83, 86, 111)")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveRiskCodes", auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()
+		responseJsonList1 = []
+		responseJsonList2 = []
+		for item in dataJson:
+			responseJsonList1.append(item)
+		for item in sqlResult:
+			responseJsonList2.append(item)
+		result = any(elem in responseJsonList2 for elem in responseJsonList1)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveRiskCodes", now, "Passed")
+			print(responseJsonList2)
+			print(responseJsonList1)
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveRiskCodes", now, "Failed")
+			print(responseJsonList2)
+			print(responseJsonList1)
+			print(false)
+	except (ValueError):
+		print("No Response Json")
