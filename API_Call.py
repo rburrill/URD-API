@@ -2,11 +2,13 @@ import requests
 import random
 from requests_ntlm import HttpNtlmAuth
 from datetime import date
-from SQL_Functions import sql_Query, sql_Transaction, sql_QueryJsonResults
+from SQL_Functions import sql_Query, sql_Transaction, sql_QueryJsonResults, sql_QueryJsonResults2
 from lowercase_booleans import true, false
 from FileCreateWrite import writeOutTestResults
 from win32com.test.testPersist import now
 import json
+from datetime import date
+from _datetime import datetime
 		
 # Authentication Credentials for API Call                
 username = 'z_URDQA_Test'
@@ -898,13 +900,9 @@ def readWorkflowController():
 		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveResidentialAddresses?task_Id=1", auth=HttpNtlmAuth(username, password))
 		if (sqlResult == response.json()) and (response.status_code == 200):
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveResidentialAddresses", now, "Passed")
-			print(sqlResult)
-			print(response.json())
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveResidentialAddresses", now, "Failed")
-			print(sqlResult)
-			print(response.json())
 			print(false)
 	except (ValueError):
 		print("No Response Json")
@@ -942,13 +940,9 @@ def readWorkflowController():
 		result = any(elem in sqlResult for elem in responseJson2)
 		if (result == true) and (response.status_code == 200):
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveIndividualTask", now, "Passed")
-			print(sqlResult)
-			print(responseJson2)
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveIndividualTask", now, "Failed")
-			print(sqlResult)
-			print(responseJson2)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
@@ -971,13 +965,9 @@ def readWorkflowController():
 		result = any(elem in sqlResult for elem in responseJsonList2)
 		if (result == true) and (response.status_code == 200):
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskListCrmId", now, "Passed")
-			print(sqlResult)
-			print(responseJsonList2)
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskListCrmId", now, "Failed")
-			print(sqlResult)
-			print(responseJsonList2)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
@@ -999,13 +989,9 @@ def readWorkflowController():
 		result = any(elem in sqlResult for elem in responseJsonList2)
 		if (result == true) and (response.status_code == 200):
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList by Eid and Task Type Id", now, "Passed")
-			print(sqlResult)
-			print(responseJsonList2)
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskList by Eid and Task Type Id", now, "Failed")
-			print(sqlResult)
-			print(responseJsonList2)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
@@ -1043,7 +1029,7 @@ def readWorkflowController():
 	try:
 		crmIdValue = sql_Query("select top 1 b.CrmId from wfl_Task a join wfl_Endpoint b on a.Endpoint_Id = b.Id where a.TaskType_Id in (9)")
 		print(crmIdValue[0][0])
-		query = "DECLARE @AppealTasks INT, @RdIds INT, @AppealSubmissionQueues INT, @FccWaiver INT DECLARE @AppealSubmissionQueueType_Id BIGINT = (SELECT TOP 1 Id FROM dbo.wfl_SubmissionQueueType WHERE Code = 'Appeal') DECLARE @IdentifiedAppealResultType_Id TINYINT = (SELECT TOP 1 Id FROM dbo.res_ResultType WHERE ResultCode = 'IdentifiedAppeal') DECLARE @AwaitingAppealResultType_Id TINYINT = (SELECT TOP 1 Id FROM dbo.res_ResultType WHERE ResultCode = 'AwaitingAppealApproval') DECLARE @FccWaiverDocumentType_Id BIGINT = (SELECT TOP 1 Id FROM dbo.dat_DocumentType WHERE DocumentTypeCode = 'FCCWAIVER') SELECT @AppealTasks = COUNT(1) FROM dbo.wfl_Endpoint e JOIN dbo.wfl_SubmissionQueue sq ON sq.Endpoint_Id = e.Id LEFT JOIN dbo.wfl_Task t ON t.Endpoint_Id = e.Id WHERE e.CrmId = 625506 AND sq.SubmissionQueueType_Id = @AppealSubmissionQueueType_Id SELECT @AppealSubmissionQueues = COUNT(1) FROM dbo.wfl_SubmissionQueue sq WHERE sq.CrmId = 625506 AND sq.SubmissionQueueType_Id = @AppealSubmissionQueueType_Id SELECT  @RdIds = COUNT(1) FROM dbo.wfl_Endpoint ie WHERE ie.CrmId = 625506 AND ie.RdId IS NOT NULL SELECT @FccWaiver = COUNT(1) FROM dbo.dat_UserDocument ud WHERE ud.CrmId = 625506 AND ud.documentType_Id = @FccWaiverDocumentType_Id SELECT CASE WHEN @RdIds = 0 AND @AppealTasks = 0 AND @AppealSubmissionQueues = 0 AND @FccWaiver <> 0 THEN 'SubmitAppeal' WHEN @RdIds > 0 THEN 'AlreadyRegistered' WHEN @AppealTasks > 0 THEN 'HasAppealTasks' ELSE '' END [AppealStatus]"
+		query = "DECLARE @AppealTasks INT, @RdIds INT, @AppealSubmissionQueues INT, @FccWaiver INT DECLARE @AppealSubmissionQueueType_Id BIGINT = (SELECT TOP 1 Id FROM dbo.wfl_SubmissionQueueType WHERE Code = 'Appeal') DECLARE @IdentifiedAppealResultType_Id TINYINT = (SELECT TOP 1 Id FROM dbo.res_ResultType WHERE ResultCode = 'IdentifiedAppeal') DECLARE @AwaitingAppealResultType_Id TINYINT = (SELECT TOP 1 Id FROM dbo.res_ResultType WHERE ResultCode = 'AwaitingAppealApproval') DECLARE @FccWaiverDocumentType_Id BIGINT = (SELECT TOP 1 Id FROM dbo.dat_DocumentType WHERE DocumentTypeCode = 'FCCWAIVER') SELECT @AppealTasks = COUNT(1) FROM dbo.wfl_Endpoint e JOIN dbo.wfl_SubmissionQueue sq ON sq.Endpoint_Id = e.Id LEFT JOIN dbo.wfl_Task t ON t.Endpoint_Id = e.Id WHERE e.CrmId = " + str(crmIdValue[0][0]) + " AND sq.SubmissionQueueType_Id = @AppealSubmissionQueueType_Id SELECT @AppealSubmissionQueues = COUNT(1) FROM dbo.wfl_SubmissionQueue sq WHERE sq.CrmId = " + str(crmIdValue[0][0]) + " AND sq.SubmissionQueueType_Id = @AppealSubmissionQueueType_Id SELECT  @RdIds = COUNT(1) FROM dbo.wfl_Endpoint ie WHERE ie.CrmId = " + str(crmIdValue[0][0]) + " AND ie.RdId IS NOT NULL SELECT @FccWaiver = COUNT(1) FROM dbo.dat_UserDocument ud WHERE ud.CrmId = " + str(crmIdValue[0][0]) + " AND ud.documentType_Id = @FccWaiverDocumentType_Id SELECT CASE WHEN @RdIds = 0 AND @AppealTasks = 0 AND @AppealSubmissionQueues = 0 AND @FccWaiver <> 0 THEN 'SubmitAppeal' WHEN @RdIds > 0 THEN 'AlreadyRegistered' WHEN @AppealTasks > 0 THEN 'HasAppealTasks' ELSE '' END [AppealStatus]"
 		sqlResult = sql_Query(query)
 		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveAppealStatus?crmId=" + str(crmIdValue[0][0]), auth=HttpNtlmAuth(username, password))
 		if (sqlResult[0][0] == str(response.json())) and (response.status_code == 200):
@@ -1086,13 +1072,9 @@ def readWorkflowController():
 		result = any(elem in responseJsonList1 for elem in responseJsonList2)
 		if (result == true) and (response.status_code == 200):
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrievePriorSubmissions", now, "Passed")
-			print(responseJsonList1)
-			print(responseJsonList2)
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrievePriorSubmissions", now, "Failed")
-			print(responseJsonList1)
-			print(responseJsonList2)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
@@ -1111,13 +1093,9 @@ def readWorkflowController():
 		result = any(elem in responseJsonList2 for elem in responseJsonList1)
 		if (result == true) and (response.status_code == 200):
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskTypes", now, "Passed")
-			print(responseJsonList2)
-			print(responseJsonList1)
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveTaskTypes", now, "Failed")
-			print(responseJsonList2)
-			print(responseJsonList1)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
@@ -1136,13 +1114,177 @@ def readWorkflowController():
 		result = any(elem in responseJsonList2 for elem in responseJsonList1)
 		if (result == true) and (response.status_code == 200):
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveRiskCodes", now, "Passed")
-			print(responseJsonList2)
-			print(responseJsonList1)
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveRiskCodes", now, "Failed")
-			print(responseJsonList2)
-			print(responseJsonList1)
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/ReadWorkflowController/RetrieveEmergencyAddresses
+	try:
+		sqlResult = sql_QueryJsonResults("select * from dat_RegisteredAddress a join wfl_Endpoint b on a.Endpoint_Id = b.Id")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveEmergencyAddresses", auth=HttpNtlmAuth(username, password))
+		responseCount = len(response.json())
+		sqlCount = len(sqlResult)
+		if (sqlCount == responseCount) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveEmergencyAddresses", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveEmergencyAddresses", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/ReadWorkflowController/RetrieveUserAgreements
+	try:
+		sqlResult = sql_QueryJsonResults("select * from dat_UserAgreement")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/ReadWorkflowController/RetrieveUserAgreements", auth=HttpNtlmAuth(username, password))
+		responseCount = len(response.json())
+		sqlCount = len(sqlResult)
+		if (sqlCount == responseCount) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveUserAgreements", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/ReadWorkflowController/RetrieveUserAgreements", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+
+def OutreachTools():
+# API Call for /api/OutreachToolsController/RetrieveInstalledUsers
+	try:
+		sqlResult = sql_Transaction("SET NOCOUNT ON; exec udsp_outr_RetrieveInstalledUsers")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrieveInstalledUsers", auth=HttpNtlmAuth(username, password))
+		responseCount = len(response.json())
+		sqlCount = len(sqlResult)
+		if (sqlCount == responseCount) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveInstalledUsers", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveInstalledUsers", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/OutreachToolsController/RetrieveLatestRequestId
+	try:
+		crmIdValue = sql_Query("SELECT e.CrmId FROM dbo.dat_Person p JOIN dbo.wfl_Endpoint e ON e.CrmId = p.CrmId JOIN dbo.wfl_SubmissionQueue sq ON e.Id = sq.Endpoint_Id LEFT JOIN dbo.dat_RegisteredAddress rega ON rega.Endpoint_Id = e.Id where rega.StreetAddress is not null and sq.RequestID is not null")
+		sqlResult = sql_QueryJsonResults("select e.CrmId as crmId, sq.RequestID as requestID, rega.StreetAddress as streetAddress, p.DOB as dob FROM dbo.dat_Person p JOIN dbo.wfl_Endpoint e ON e.CrmId = p.CrmId JOIN dbo.wfl_SubmissionQueue sq ON e.Id = sq.Endpoint_Id LEFT JOIN dbo.dat_RegisteredAddress rega ON rega.Endpoint_Id = e.Id WHERE e.CrmId = " + str(crmIdValue[0][0]))
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrieveLatestRequestId?CrmId=" + str(crmIdValue[0][0]), auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()
+		responseJsonList1 = []
+		responseJsonList2 = []
+		for item in dataJson:
+			responseJsonList1.append(item)
+		for item in sqlResult:
+			responseJsonList2.append(item)
+		result = any(elem in responseJsonList2 for elem in responseJsonList1)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveLatestRequestId", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveLatestRequestId", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/OutreachToolsController/RetrievePortedOutTdns
+	try:
+		sqlResult = sql_QueryJsonResults("SELECT e.CrmId as crmId, e.Eid as tdn, pdt.[Description] as action FROM dbo.dat_PortDate pd JOIN dbo.dat_PortDateType pdt ON pd.PortDateType_Id = pdt.Id JOIN dbo.wfl_Endpoint e ON pd.Eid = e.Eid CROSS APPLY (SELECT TOP 1 * FROM dbo.wfl_EndpointHistory eh WITH (NOLOCK) WHERE eh.Eid = e.Eid AND eh.RdId >'' ORDER BY eh.HistoryEndDt DESC) eh WHERE pd.IsActive = 1 AND e.RdId IS NULL")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrievePortedOutTdns", auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()
+		responseJsonList1 = []
+		responseJsonList2 = []
+		for item in dataJson:
+			responseJsonList1.append(item["crmId"])
+			responseJsonList1.append(item["tdn"])
+			responseJsonList1.append(item["action"])
+		for item in sqlResult:
+			responseJsonList2.append(item["crmId"])
+			responseJsonList2.append(item["tdn"])
+			responseJsonList2.append(item["action"])
+		result = any(elem in responseJsonList2 for elem in responseJsonList1)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrievePortedOutTdns", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrievePortedOutTdns", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/OutreachToolsController/RetrieveScrubbedMinutes
+	try:
+		sqlResult = sql_QueryJsonResults2("SELECT PRC.UserType as userType, PRC.CrmId as crmId, PRC.Tdn as tdn, PRC.SubmissionQueueType as submissionQueueType, PRC.SubmissionQueueStatus as submissionQueueStatus, PRC.TaskType as taskType, SUM( PRC.Mins ) as minutes FROM  VRSRegistration_Settings.dbo.vBilling_ProgressReportCurrentSubmissionTask AS PRC WHERE  PRC.CallCompensable = 0 AND (PRC.UserType NOT LIKE 'Internal%' AND PRC.UserType NOT LIKE 'Hearing%' AND PRC.UserType NOT LIKE 'Company%Hearing%') AND PRC.CallDate >= DATEADD(DAY,-1,CAST(GETUTCDATE() AS DATE)) GROUP BY PRC.CallDate, PRC.UserType, PRC.CRMID, PRC.Tdn, PRC.SubmissionQueueType, PRC.SubmissionQueueStatus, PRC.TaskType order by SUM( PRC.Mins ) desc")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrieveScrubbedMinutes?numberOfDaysToReturn=1", auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()
+		responseJsonList1 = []
+		responseJsonList2 = []
+		for item in dataJson:
+			responseJsonList1.append(item["userType"])
+			responseJsonList1.append(item["crmId"])
+			responseJsonList1.append(item["tdn"])
+			responseJsonList1.append(item["submissionQueueType"])
+			responseJsonList1.append(item["submissionQueueStatus"])
+			responseJsonList1.append(item["taskType"])
+			responseJsonList1.append(item["minutes"])
+		for item in sqlResult:
+			responseJsonList2.append(item["userType"])
+			responseJsonList2.append(item["crmId"])
+			responseJsonList2.append(item["tdn"])
+			responseJsonList2.append(item["submissionQueueType"])
+			responseJsonList2.append(item["submissionQueueStatus"])
+			responseJsonList2.append(item["taskType"])
+			responseJsonList2.append(item["minutes"])
+		result = any(elem in responseJsonList1 for elem in responseJsonList2)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveScrubbedMinutes", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveScrubbedMinutes", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/OutreachToolsController/RetrieveScrubbedMinutesSummary
+	try:
+		sqlResult = sql_QueryJsonResults2("SELECT  PRC.UserType as userType, ISNULL(PRC.SubmissionQueueType, '') as submissionQueueType, ISNULL(PRC.SubmissionQueueStatus, '') as submissionQueueStatus, ISNULL(PRC.TaskType, '') as taskType, SUM( PRC.Mins ) as minutes FROM VRSRegistration_Settings.dbo.vBilling_ProgressReportCurrentSubmissionTask AS PRC WHERE  PRC.CallCompensable = 0 AND (PRC.UserType NOT LIKE 'Internal%' AND PRC.UserType NOT LIKE 'Hearing%' AND PRC.UserType NOT LIKE 'Company%Hearing%') AND PRC.CallDate    >= DATEADD(DAY,-1,CAST(GETUTCDATE() AS DATE)) GROUP BY PRC.UserType, PRC.SubmissionQueueType, PRC.SubmissionQueueStatus, PRC.TaskType order by Minutes desc")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrieveScrubbedMinutesSummary?numberOfDaysToReturn=1", auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()
+		responseJsonList1 = []
+		responseJsonList2 = []
+		for item in dataJson:
+			responseJsonList1.append(item["userType"])
+			if item["submissionQueueType"] is None:
+				item["submissionQueueType"] = ''
+				responseJsonList1.append(item["submissionQueueType"])
+			else: 
+				responseJsonList1.append(item["submissionQueueType"])
+			if item["submissionQueueStatus"] is None:
+				item["submissionQueueStatus"] = ''
+				responseJsonList1.append(item["submissionQueueStatus"])
+			else:
+				responseJsonList1.append(item["submissionQueueStatus"])
+			if item["taskType"] is None:
+				item["taskType"] = ''
+				responseJsonList1.append(item["taskType"])
+			else:
+				responseJsonList1.append(item["taskType"])
+			responseJsonList1.append(item["minutes"])
+		for item in sqlResult:
+			responseJsonList2.append(item["userType"])
+			responseJsonList2.append(item["submissionQueueType"])
+			responseJsonList2.append(item["submissionQueueStatus"])
+			responseJsonList2.append(item["taskType"])
+			responseJsonList2.append(item["minutes"])
+		result = any(elem in responseJsonList1 for elem in responseJsonList2)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveScrubbedMinutesSummary", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveScrubbedMinutesSummary", now, "Failed")
 			print(false)
 	except (ValueError):
 		print("No Response Json")
