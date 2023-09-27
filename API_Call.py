@@ -1288,3 +1288,74 @@ def OutreachTools():
 			print(false)
 	except (ValueError):
 		print("No Response Json")
+
+# API Call for /api/OutreachToolsController/GetRegisteringNumberingDirectoryTdns
+	try:
+		eidValue = sql_Query("select top 1 a.Eid as tdn from wfl_Endpoint a join dat_Person b on a.CrmId = b.CrmId join dat_ResidentialAddress c on a.CrmId = c.CrmId where c.StreetAddressAdditionalInformation is not null and b.Last4SSN is not null and b.MiddleName is not null")
+		myJson = [
+		 str(eidValue[0][0])
+		]
+		sqlResult = sql_QueryJsonResults("select a.Eid as tdn, a.CrmId as crmId, b.FirstName as firstName, b.LastName as lastName, c.StreetAddress as residentialStreetAddress, c.StreetAddressAdditionalInformation as residentialStreetAddressAdditionalInfo, c.City as residentialCity, c.StateCode as residentialState, c.Zip5 as zipCode from wfl_Endpoint a join dat_Person b on a.CrmId = b.CrmId join dat_ResidentialAddress c on a.CrmId = c.CrmId where c.StreetAddressAdditionalInformation is not null and b.Last4SSN is not null and b.MiddleName is not null and a.Eid = " + str(eidValue[0][0]))
+		response = requests.post("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/GetRegisteringNumberingDirectoryTdns", json=myJson, auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()
+		responseJsonList1 = []
+		responseJsonList2 = []
+		for item in dataJson:
+			responseJsonList1.append(item["tdn"])
+			responseJsonList1.append(item["crmId"])
+			responseJsonList1.append(item["firstName"])
+			responseJsonList1.append(item["lastName"])
+			responseJsonList1.append(item["residentialStreetAddress"])
+			responseJsonList1.append(item["residentialStreetAddressAdditionalInfo"])
+			responseJsonList1.append(item["residentialCity"])
+			responseJsonList1.append(item["residentialState"])
+			responseJsonList1.append(item["zipCode"])
+		for item in sqlResult:
+			responseJsonList2.append(item["tdn"])
+			responseJsonList2.append(item["crmId"])
+			responseJsonList2.append(item["firstName"])
+			responseJsonList2.append(item["lastName"])
+			responseJsonList2.append(item["residentialStreetAddress"])
+			responseJsonList2.append(item["residentialStreetAddressAdditionalInfo"])
+			responseJsonList2.append(item["residentialCity"])
+			responseJsonList2.append(item["residentialState"])
+			responseJsonList2.append(item["zipCode"])
+		result = any(elem in responseJsonList1 for elem in responseJsonList2)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/OutreachToolsController/GetRegisteringNumberingDirectoryTdns", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/OutreachToolsController/GetRegisteringNumberingDirectoryTdns", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/OutreachToolsController/RetrieveLastActivityPageInfo
+	try:
+		sqlResult = sql_QueryJsonResults2("SELECT DISTINCT la.CrmId, la.Tdn, la.LastActivityDt_utc AS LastActivityDate, CAST(NULL AS VARCHAR) AS [AccountType], rgu.RingGroup_Id AS MyPhoneGroupId, RIGHT(rgopn.PhoneNumber, 10) AS MyPhoneGroupTdn FROM VRS_Registration.dbo.LastActivity la JOIN CoreServices.dbo.vp_VPUsers AS VU ON la.CrmId = VU.Crm_Id AND  la.LastActivityDt_utc <= DATEADD( MONTH, -10, SYSUTCDATETIME()) JOIN CoreServices.dbo.vp_PhoneNumbers pn ON VU.userID = pn.UserID AND  pn.PhoneNumber = la.PhoneNumber AND  pn.State IN ( 'ACTIVE' ,'REDIRECT' ) LEFT JOIN CoreServices.dbo.vp_RingGroupUser rgu ON rgu.User_Id = VU.userID AND (rgu.RingGroupMemberStatus_Id = 2 OR rgu.IsRingGroupOwner = 1) LEFT JOIN CoreServices.dbo.vp_RingGroupUser rgo ON rgo.RingGroup_Id = rgu.RingGroup_Id AND  rgo.IsRingGroupOwner = 1 LEFT JOIN CoreServices.dbo.vp_PhoneNumbers  rgopn ON rgopn.UserID = rgo.User_Id AND rgopn.State IN ( 'ACTIVE', 'REDIRECT' )")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrieveLastActivityPageInfo?months=10", auth=HttpNtlmAuth(username, password))
+		responseCount = len(response.json())
+		sqlCount = len(sqlResult)
+		if (sqlCount == responseCount) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveLastActivityPageInfo", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveLastActivityPageInfo", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/OutreachToolsController/RetrieveFailedMessages
+	try:
+		sqlResult = sql_QueryJsonResults("SELECT id, CrmId as crmId, FailureReason as failureReeason, SequenceNumber as sequenceNumber, MessageId as messageId, EnqueuedTimeUtc as enqueuedTimeUtc, IsFixed as isFixed FROM dbo.sb_FailedMessages WHERE IsFixed = 0 ORDER BY Id")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrieveFailedMessages", auth=HttpNtlmAuth(username, password))
+		responseCount = len(response.json())
+		sqlCount = len(sqlResult)
+		if (sqlCount == responseCount) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveFailedMessages", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveFailedMessages", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
