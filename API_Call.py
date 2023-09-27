@@ -7,8 +7,6 @@ from lowercase_booleans import true, false
 from FileCreateWrite import writeOutTestResults
 from win32com.test.testPersist import now
 import json
-from datetime import date
-from _datetime import datetime
 		
 # Authentication Credentials for API Call                
 username = 'z_URDQA_Test'
@@ -1332,8 +1330,8 @@ def OutreachTools():
 
 # API Call for /api/OutreachToolsController/RetrieveLastActivityPageInfo
 	try:
-		sqlResult = sql_QueryJsonResults2("SELECT DISTINCT la.CrmId, la.Tdn, la.LastActivityDt_utc AS LastActivityDate, CAST(NULL AS VARCHAR) AS [AccountType], rgu.RingGroup_Id AS MyPhoneGroupId, RIGHT(rgopn.PhoneNumber, 10) AS MyPhoneGroupTdn FROM VRS_Registration.dbo.LastActivity la JOIN CoreServices.dbo.vp_VPUsers AS VU ON la.CrmId = VU.Crm_Id AND  la.LastActivityDt_utc <= DATEADD( MONTH, -10, SYSUTCDATETIME()) JOIN CoreServices.dbo.vp_PhoneNumbers pn ON VU.userID = pn.UserID AND  pn.PhoneNumber = la.PhoneNumber AND  pn.State IN ( 'ACTIVE' ,'REDIRECT' ) LEFT JOIN CoreServices.dbo.vp_RingGroupUser rgu ON rgu.User_Id = VU.userID AND (rgu.RingGroupMemberStatus_Id = 2 OR rgu.IsRingGroupOwner = 1) LEFT JOIN CoreServices.dbo.vp_RingGroupUser rgo ON rgo.RingGroup_Id = rgu.RingGroup_Id AND  rgo.IsRingGroupOwner = 1 LEFT JOIN CoreServices.dbo.vp_PhoneNumbers  rgopn ON rgopn.UserID = rgo.User_Id AND rgopn.State IN ( 'ACTIVE', 'REDIRECT' )")
-		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrieveLastActivityPageInfo?months=10", auth=HttpNtlmAuth(username, password))
+		sqlResult = sql_QueryJsonResults2("SELECT DISTINCT la.CrmId, la.Tdn, la.LastActivityDt_utc AS LastActivityDate, CAST(NULL AS VARCHAR) AS [AccountType], rgu.RingGroup_Id AS MyPhoneGroupId, RIGHT(rgopn.PhoneNumber, 10) AS MyPhoneGroupTdn FROM VRS_Registration.dbo.LastActivity la JOIN CoreServices.dbo.vp_VPUsers AS VU ON la.CrmId = VU.Crm_Id AND  la.LastActivityDt_utc <= DATEADD( MONTH, -9, SYSUTCDATETIME()) JOIN CoreServices.dbo.vp_PhoneNumbers pn ON VU.userID = pn.UserID AND  pn.PhoneNumber = la.PhoneNumber AND  pn.State IN ( 'ACTIVE' ,'REDIRECT' ) LEFT JOIN CoreServices.dbo.vp_RingGroupUser rgu ON rgu.User_Id = VU.userID AND (rgu.RingGroupMemberStatus_Id = 2 OR rgu.IsRingGroupOwner = 1) LEFT JOIN CoreServices.dbo.vp_RingGroupUser rgo ON rgo.RingGroup_Id = rgu.RingGroup_Id AND  rgo.IsRingGroupOwner = 1 LEFT JOIN CoreServices.dbo.vp_PhoneNumbers  rgopn ON rgopn.UserID = rgo.User_Id AND rgopn.State IN ( 'ACTIVE', 'REDIRECT' )")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrieveLastActivityPageInfo?months=9", auth=HttpNtlmAuth(username, password))
 		responseCount = len(response.json())
 		sqlCount = len(sqlResult)
 		if (sqlCount == responseCount) and (response.status_code == 200):
@@ -1341,6 +1339,8 @@ def OutreachTools():
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveLastActivityPageInfo", now, "Failed")
+			print(sqlCount)
+			print(responseCount)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
@@ -1356,6 +1356,108 @@ def OutreachTools():
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveFailedMessages", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/OutreachToolsController/RetrieveUrdDashboard
+	try:
+		sqlResult = sql_QueryJsonResults("DECLARE @StartDt DATETIME2(3) = '2023-01-01', @EndDt DATETIME2(3) = '2023-09-27' SELECT 'RecentRegisteredAccounts' as name, COUNT(DISTINCT vaa.CrmId) as crmIdCount, COUNT(DISTINCT e.Eid) as eidCount, ct.[Name] as complianceType FROM dbo.dat_ComplianceType ct JOIN dbo.vdat_AllAccounts vaa ON vaa.ComplianceType_Id = ct.Id JOIN dbo.wfl_Endpoint e ON vaa.CrmId = e.CrmId WHERE @StartDt <= e.RegistrationDt AND e.RegistrationDt <= @EndDt GROUP BY ct.[Name] UNION SELECT 'TotalRegisteredAccounts' as name, COUNT(DISTINCT vaa.CrmId) as crmIdCount, COUNT(DISTINCT e.Eid) as eidCount, ct.[Name] as complianceType FROM dbo.dat_ComplianceType ct JOIN dbo.vdat_AllAccounts vaa ON vaa.ComplianceType_Id = ct.Id JOIN dbo.wfl_Endpoint e ON vaa.CrmId = e.CrmId WHERE RdId IS NOT NULL OR RegistrationDt IS NOT NULL GROUP BY ct.[Name] UNION SELECT 'RecentPendingAccounts' as name, COUNT(DISTINCT vaa.CrmId) as crmIdCount, COUNT(DISTINCT e.Eid) as eidCount, ct.[Name] as complianceType FROM dbo.dat_ComplianceType ct JOIN dbo.vdat_AllAccounts vaa ON vaa.ComplianceType_Id = ct.Id JOIN dbo.wfl_SubmissionQueue sq ON sq.CrmId = vaa.CrmId JOIN dbo.wfl_Endpoint e ON vaa.CrmId = e.CrmId WHERE sq.NumberOfAttempts > 0 AND sq.RDID IS NULL AND sq.SubmissionQueueType_Id = 1 AND sq.SubmissionQueueStatus_Id IN (2, 5) AND @StartDt <= sq.CreatedDt AND sq.CreatedDt <= @EndDt GROUP BY ct.[Name] UNION SELECT 'TotalPendingAccounts' as name, COUNT(DISTINCT vaa.CrmId) as crmIdCount, COUNT(DISTINCT e.Eid) as eidCount, ct.[Name] as complianceType FROM dbo.dat_ComplianceType ct JOIN dbo.vdat_AllAccounts vaa ON vaa.ComplianceType_Id = ct.Id JOIN dbo.wfl_SubmissionQueue sq ON sq.CrmId = vaa.CrmId JOIN dbo.wfl_Endpoint e ON vaa.CrmId = e.CrmId WHERE sq.NumberOfAttempts > 0 AND sq.RDID IS NULL AND sq.SubmissionQueueType_Id = 1 AND sq.SubmissionQueueStatus_Id IN (2, 5) GROUP BY ct.[Name] ORDER BY name, complianceType")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrieveUrdDashboard?startDt=2023-01-01&endDt=2023-09-27", auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()
+		responseJsonList1 = []
+		responseJsonList2 = []
+		for item in dataJson:
+			responseJsonList1.append(item["name"])
+			responseJsonList1.append(item["crmIdCount"])
+			responseJsonList1.append(item["eidCount"])
+			responseJsonList1.append(item["complianceType"])
+		for item in sqlResult:
+			responseJsonList2.append(item["name"])
+			responseJsonList2.append(item["crmIdCount"])
+			responseJsonList2.append(item["eidCount"])
+			responseJsonList2.append(item["complianceType"])
+		result = any(elem in responseJsonList1 for elem in responseJsonList2)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveUrdDashboard", now, "Passed")
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveUrdDashboard", now, "Failed")
+			print(false)
+	except (ValueError):
+		print("No Response Json")
+
+# API Call for /api/OutreachToolsController/RetrieveActiveAppeals
+	try:
+		sqlResult = sql_QueryJsonResults("SELECT sq.Id as submissionQueue_Id,sq.CrmId as crmId,ISNULL(DATEDIFF(DAY, sq.CreatedDt, GETUTCDATE()), '') as age,ISNULL(tasksStr.AppealStatus, '')  as appealStatus,ISNULL(ar.Id, '') as appealRequest_Id,CASE WHEN ar.IsFileSubmitted = 1 THEN 'Submitted' ELSE CASE WHEN ar.isFileArchived = 1 THEN 'Archived' ELSE '' END END as appealRequestStatus,ISNULL(ar.[FileName], '') as appealRequestFileName,ISNULL(ud.Id, '') as latestDocument_Id,ISNULL(dt.[Description], '') as latestDocument,ISNULL(ud.FileLocation, '') as latestDocumentFileLocation FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY CrmId ORDER BY CreatedDt ASC) as rn FROM dbo.wfl_SubmissionQueue WHERE SubmissionQueueType_Id = 7 ) sq OUTER APPLY (SELECT TOP 1 * FROM dbo.sub_AppealRequest ar WHERE ar.CrmId = sq.CrmId) ar OUTER APPLY (SELECT STRING_AGG(tasks.[Name], ', ') [AppealStatus] FROM (SELECT DISTINCT tt.[Name] FROM dbo.wfl_Endpoint e JOIN dbo.wfl_Task t ON t.Endpoint_Id = e.Id JOIN dbo.wfl_TaskType tt ON tt.Id = t.TaskType_Id WHERE e.CrmId = sq.CrmId) tasks) tasksStr OUTER APPLY (SELECT TOP 1 * FROM dbo.dat_UserDocument doc WHERE doc.CrmId = sq.CrmId ORDER BY doc.SourceCreatedDt DESC) ud LEFT JOIN dbo.dat_DocumentType dt ON dt.Id = ud.DocumentType_Id WHERE sq.SubmissionQueueType_Id = 7 AND rn = 1")
+		response = requests.get("http://urd-qa.corp.srelay.com/URA/api/OutreachToolsController/RetrieveActiveAppeals", auth=HttpNtlmAuth(username, password))
+		dataJson = response.json()
+		responseJsonList1 = []
+		responseJsonList2 = []
+		for item in dataJson:
+			responseJsonList1.append(item["submissionQueue_Id"])
+			responseJsonList1.append(item["crmId"])
+			if item["age"] is None:
+				item["age"] = ''
+				responseJsonList1.append(item["age"])
+			else:
+				responseJsonList1.append(item["age"])
+			if item["appealStatus"] is None:
+				item["appealStatus"] = ''
+				responseJsonList1.append(item["appealStatus"])
+			else:
+				responseJsonList1.append(item["appealStatus"])
+			if item["appealRequest_Id"] is None:
+				item["appealRequest_Id"] = ''
+				responseJsonList1.append(item["appealRequest_Id"])
+			else:
+				responseJsonList1.append(item["appealRequest_Id"])
+			if item["appealRequestStatus"] is None:
+				item["appealRequestStatus"] = ''
+				responseJsonList1.append(item["appealRequestStatus"])
+			else:
+				responseJsonList1.append(item["appealRequestStatus"])
+			if item["appealRequestFileName"] is None:
+				item["appealRequestFileName"] = ''
+				responseJsonList1.append(item["appealRequestFileName"])
+			else:
+				responseJsonList1.append(item["appealRequestFileName"])
+			if item["latestDocument_Id"] is None:
+				item["latestDocument_Id"] = ''
+				responseJsonList1.append(item["latestDocument_Id"])
+			else:
+				responseJsonList1.append(item["latestDocument_Id"])
+			if item["latestDocument"] is None:
+				item["latestDocument"] = ''
+				responseJsonList1.append(item["latestDocument"])
+			else:
+				responseJsonList1.append(item["latestDocument"])
+			if item["latestDocumentFileLocation"] is None:
+				item["latestDocumentFileLocation"] = ''
+				responseJsonList1.append(item["latestDocumentFileLocation"])
+			else:
+				responseJsonList1.append(item["latestDocumentFileLocation"])
+		for item in sqlResult:
+			responseJsonList2.append(item["submissionQueue_Id"])
+			responseJsonList2.append(item["crmId"])
+			responseJsonList2.append(item["age"])
+			responseJsonList2.append(item["appealStatus"])
+			responseJsonList2.append(item["appealRequest_Id"])
+			responseJsonList2.append(item["appealRequestStatus"])
+			responseJsonList2.append(item["appealRequestFileName"])
+			responseJsonList2.append(item["latestDocument_Id"])
+			responseJsonList2.append(item["latestDocument"])
+			responseJsonList2.append(item["latestDocumentFileLocation"])
+		result = any(elem in responseJsonList1 for elem in responseJsonList2)
+		if (result == true) and (response.status_code == 200):
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveActiveAppeals", now, "Passed")
+			# print(responseJsonList1)
+			# print(responseJsonList2)
+			print(true)
+		else:
+			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveActiveAppeals", now, "Failed")
+			# print(responseJsonList2)
+			# print(responseJsonList2)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
