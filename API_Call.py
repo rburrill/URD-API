@@ -1339,8 +1339,6 @@ def OutreachTools():
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveLastActivityPageInfo", now, "Failed")
-			print(sqlCount)
-			print(responseCount)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
@@ -1451,13 +1449,9 @@ def OutreachTools():
 		result = any(elem in responseJsonList1 for elem in responseJsonList2)
 		if (result == true) and (response.status_code == 200):
 			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveActiveAppeals", now, "Passed")
-			# print(responseJsonList1)
-			# print(responseJsonList2)
 			print(true)
 		else:
 			writeOutTestResults(path, "/api/OutreachToolsController/RetrieveActiveAppeals", now, "Failed")
-			# print(responseJsonList2)
-			# print(responseJsonList2)
 			print(false)
 	except (ValueError):
 		print("No Response Json")
